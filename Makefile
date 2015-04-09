@@ -12,10 +12,11 @@ dist: $(DIST_DIR)/hashed.js $(DIST_DIR)/hashed.min.js
 
 $(DIST_DIR)/hashed.js: $(LIB_SCRIPTS) node_modules/.time
 	@mkdir -p $(DIST_DIR)
-	@browserify $(LIB_DIR)/index.js --debug --standalone hashed > $@
+	@webpack --devtool=inline-source-map --output-library-target=umd --output-library=hashed $(LIB_DIR)/index.js $@;
 
-$(DIST_DIR)/hashed.min.js: $(DIST_DIR)/hashed.js
-	@uglifyjs $< > $@
+$(DIST_DIR)/hashed.min.js: $(LIB_SCRIPTS) node_modules/.time
+	@mkdir -p $(DIST_DIR)
+	@webpack --optimize-minimize --output-library-target=umd --output-library=hashed $(LIB_DIR)/index.js $@;
 
 .PHONY: clean
 clean:
