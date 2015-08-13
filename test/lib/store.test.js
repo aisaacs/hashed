@@ -8,6 +8,57 @@ lab.experiment('store', function() {
   lab.experiment('Store', function() {
     var noop = function() {};
 
+    lab.experiment('multiple', function() {
+
+      lab.test('multiple stores update properly', function(done) {
+
+        var mismatchedCalls = 0;
+
+        var store = new Store(function(values) {
+          var v = JSON.parse(JSON.stringify(values));
+          setTimeout(function() {
+            store.update(v);
+          }, 15);
+        });
+
+        var batExpectedValue = '';
+        var log = [];
+
+        function fooCallback(val) {
+          log.push({foo: val});
+        }
+
+        function batCallback(val) {
+          if (val.bat !== batExpectedValue) {
+            mismatchedCalls++;
+          }
+          log.push({bat: val});
+        }
+
+        var fooUpdate = store.register({foo: ''}, fooCallback);
+        var batUpdate = store.register({bat: ''}, batCallback);
+
+        setTimeout(function() {
+          fooUpdate({foo: 'bar'});
+        }, 5);
+
+        setTimeout(function() {
+          batUpdate({bat: 'baz'});
+          batExpectedValue = 'baz';
+        }, 10);
+
+        setTimeout(function() {
+          expect(mismatchedCalls).to.equal(0);
+          expect(log).to.deep.equal([
+            {foo: {foo: ''}},
+            {bat: {bat: ''}}
+          ]);
+          done();
+        }, 70);
+      });
+
+    });
+
     lab.experiment('constructor', function() {
 
       lab.test('creates a new instance', function(done) {
@@ -225,14 +276,16 @@ lab.experiment('store', function() {
             });
 
         update({foo: 'foo.1', bar: 'bar.1'});
-        store.update({foo: 'foo.2', bar: 'bar.2'});
+        setTimeout(function() {
+          store.update({foo: 'foo.2', bar: 'bar.2'});
+        }, 0);
         expect(calls).to.have.length(0);
 
         setTimeout(function() {
           expect(calls).to.have.length(1);
           expect(calls[0]).to.deep.equal({foo: 'foo.2', bar: 'bar.2'});
           done();
-        }, 0);
+        }, 10);
 
       });
 
@@ -247,14 +300,16 @@ lab.experiment('store', function() {
             });
 
         update({foo: 'foo.1', bar: 'bar.1'});
-        store.update({foo: 'foo.2', bar: 'bar.1'});
+        setTimeout(function() {
+          store.update({foo: 'foo.2', bar: 'bar.1'});
+        }, 0);
         expect(calls).to.have.length(0);
 
         setTimeout(function() {
           expect(calls).to.have.length(1);
           expect(calls[0]).to.deep.equal({foo: 'foo.2'});
           done();
-        }, 0);
+        }, 10);
 
       });
 
